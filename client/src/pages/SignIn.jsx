@@ -85,9 +85,6 @@ function SignIn() {
                   placeholder="Email"
                   autoComplete="email"
                 />
-                {error?.toLowerCase().includes("email") && (
-                  <div className="text-red-500 text-sm mt-1">{error}</div>
-                )}
               </div>
               <div>
                 <label className="font-medium">Password</label>
