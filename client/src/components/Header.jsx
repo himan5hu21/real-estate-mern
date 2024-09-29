@@ -10,9 +10,8 @@ const Header = () => {
 
   const navigation = [
     { title: "Home", path: "/" },
-    { title: "Properties", path: "/" },
+    { title: "Properties", path: "/profile" },
     { title: "About", path: "/about" },
-    { title: "Help", path: "/" },
   ];
   return (
     <nav className="bg-slate-200 shadow-md border-b">
@@ -53,6 +52,7 @@ const Header = () => {
                           : ""
                       }`
                     }
+                    onClick={() => setMenuState(!menuState)}
                   >
                     {item.title}
                   </NavLink>
