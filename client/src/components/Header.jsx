@@ -1,69 +1,18 @@
-// import { FaSearch } from "react-icons/fa";
-import logo from "../assets/image.png";
-
-// function Header() {
-//   return (
-//     <header className="bg-slate-200 shadow-md ">
-//       <div className="flex justify-between items-center max-w-6xl mx-auto p-3">
-//         <h1 className="font-bold text-sm sm:text-xl flex flex-wrap">
-//           {/* <span className="text-slate-500">Sahand</span>
-//           <span className="text-slate-700">Estate</span> */}
-//           <a href="#">
-//             <img src={logo} alt="logo" className="w-20" />
-//           </a>
-//         </h1>
-//         <form className="bg-slate-100 p-3 rounded-lg flex items-center">
-//           <input
-//             type="text"
-//             placeholder="Search..."
-//             className="bg-transparent focus:outline-none w-24 sm:w-64 md:w-64"
-//           />
-//           <FaSearch className=" text-slate-500" />
-//         </form>
-//         <ul className="flex gap-4 list-none">
-//           <li className={`hover:text-cyan-700 `}>
-//             <a href="/" className="block py-1">
-//               Home
-//             </a>
-//           </li>
-//           <li className={`hover:text-cyan-700`}>
-//             <a href="/about" className="block py-1">
-//               About
-//             </a>
-//           </li>
-//           <li className={`hover:text-cyan-700`}>
-//             <a href="/sign-in" className="block py-1">
-//               LogIn
-//             </a>
-//           </li>
-//           <li>
-//             <button className="bg-cyan-700 rounded-md px-3 py-1 text-white hover:scale-110 hover:transition-all">
-//               <a href="/sign-up">Sign Up</a>
-//             </button>
-//           </li>
-//         </ul>
-//       </div>
-//     </header>
-//   );
-// }
-
-// export default Header;
+import logo from "../assets/logo.png";
 
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import ProfileDropDown from "./ProfileDropDown";
-
-// Profile Dropdown
+import { FaSearch } from "react-icons/fa";
 
 const Header = () => {
   const [menuState, setMenuState] = useState(false);
 
-  // Replace javascript:void(0) path with your path
   const navigation = [
     { title: "Home", path: "/" },
-    { title: "Properties", path: "javascript:void(0)" },
+    { title: "Properties", path: "/" },
     { title: "About", path: "/about" },
-    { title: "Help", path: "javascript:void(0)" },
+    { title: "Help", path: "/" },
   ];
   return (
     <nav className="bg-slate-200 shadow-md border-b">
@@ -72,12 +21,16 @@ const Header = () => {
           <NavLink
             to="/"
             className={({ isActive, isPending }) =>
-              `nav-link ${
+              `nav-link flex items-center gap-3 text-2xl font-semibold ${
                 isActive ? "text-sky-700" : isPending ? "text-gray-600" : ""
               }`
             }
           >
-            <img src={logo} alt="Float UI logo" className="w-20" />
+            <img src={logo} alt="Float UI logo" className="w-16 sm:w-20" />
+            <h1 className="font-bold text-sm sm:text-xl flex flex-wrap">
+              <span className="text-sky-700">Key</span>
+              <span className="text-slate-700">Haven</span>
+            </h1>
           </NavLink>
         </div>
         <div className="flex-1 flex items-center justify-between">
@@ -94,7 +47,7 @@ const Header = () => {
                     className={({ isActive, isPending }) =>
                       `nav-link ${
                         isActive
-                          ? "text-sky-700"
+                          ? "text-sky-700 font-medium border-b-2 border-sky-700"
                           : isPending
                           ? "text-gray-600"
                           : ""
@@ -109,26 +62,13 @@ const Header = () => {
             <ProfileDropDown class="mt-5 pt-5 border-t border-gray-400 md:hidden" />
           </div>
           <div className="flex-1 flex items-center justify-end space-x-2 sm:space-x-6">
-            <form className="flex items-center space-x-2 border bg-white rounded-md p-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 flex-none text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+            <form className="flex items-center space-x-2 border bg-white rounded-md p-2 hover:border-sky-700 focus-within:border-sky-700">
               <input
-                className="w-full bg-transparent outline-none appearance-none placeholder-gray-500 text-gray-500 sm:w-auto"
+                className="w-full mx-2 bg-transparent outline-none appearance-none placeholder-gray-500 text-gray-500 sm:w-auto"
                 type="text"
                 placeholder="Search"
               />
+              <FaSearch className="px-2 w-10 cursor-pointer hover:text-sky-700" />
             </form>
             <ProfileDropDown class="hidden md:block" />
             <button
