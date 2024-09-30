@@ -1,12 +1,22 @@
-import logo from "../assets/logo.png";
-
-import { useState } from "react";
+import logo from "../assets/images/logo.png";
 import { NavLink } from "react-router-dom";
 import ProfileDropDown from "./ProfileDropDown";
 import { FaSearch } from "react-icons/fa";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleMenu } from "../store/menu/menuSlice";
+import useMobileScreen from "../hooks/useMobileScreen";
+import { RiCloseLargeFill } from "react-icons/ri";
 
 const Header = () => {
-  const [menuState, setMenuState] = useState(false);
+  const dispatch = useDispatch();
+  const isOpen = useSelector((state) => state.menu.isOpen);
+  const isMobile = useMobileScreen();
+
+  const handleToggleMenu = () => {
+    if (isMobile) {
+      dispatch(toggleMenu());
+    }
+  };
 
   const navigation = [
     { title: "Home", path: "/" },
@@ -34,25 +44,55 @@ const Header = () => {
         </div>
         <div className="flex-1 flex items-center justify-between">
           <div
-            className={`bg-slate-200 absolute z-20 w-full top-16 left-0 p-4 border-b md:static md:block md:border-none ${
-              menuState ? "" : "hidden"
-            }`}
+            className={
+              isMobile
+                ? `fixed top-0 right-0 w-3/4 sm:w-1/2 h-full bg-slate-200 transition-transform transform ${
+                    isOpen ? "translate-x-0" : "translate-x-full"
+                  } z-20 p-4 border-l border-gray-400`
+                : `bg-slate-200 absolute z-20 w-full top-16 left-0 p-4 border-b md:static md:block md:border-none ${
+                    isOpen ? "" : "hidden"
+                  }`
+            }
           >
+            {isMobile ? (
+              <div className="flex justify-end">
+                <button
+                  onClick={handleToggleMenu}
+                  className="text-gray-600 hover:text-sky-600"
+                >
+                  <RiCloseLargeFill size={24} />
+                </button>
+              </div>
+            ) : (
+              <></>
+            )}
+
             <ul className="mt-6 space-y-5 md:flex md:space-x-6 md:space-y-0 md:mt-0  ">
               {navigation.map((item, idx) => (
-                <li key={idx} className="text-gray-600 hover:text-sky-600">
+                <li
+                  key={idx}
+                  className={isMobile ? "" : "text-gray-600 hover:text-sky-600"}
+                >
                   <NavLink
                     to={item.path}
                     className={({ isActive, isPending }) =>
                       `nav-link ${
+                        isMobile
+                          ? "block px-4 py-2 rounded-md transition-colors duration-300"
+                          : ""
+                      }  ${
                         isActive
-                          ? "text-sky-700 font-medium border-b-2 border-sky-700"
+                          ? isMobile
+                            ? "bg-sky-700 text-white"
+                            : "text-sky-700 font-medium border-b-2 border-sky-700"
                           : isPending
                           ? "text-gray-600"
+                          : isMobile
+                          ? "text-gray-600 hover:bg-sky-600 hover:text-white"
                           : ""
                       }`
                     }
-                    onClick={() => setMenuState(!menuState)}
+                    onClick={handleToggleMenu}
                   >
                     {item.title}
                   </NavLink>
@@ -61,6 +101,12 @@ const Header = () => {
             </ul>
             <ProfileDropDown class="mt-5 pt-5 border-t border-gray-400 md:hidden" />
           </div>
+          <div
+            className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 ${
+              isOpen ? "block" : "hidden"
+            }`}
+            onClick={handleToggleMenu}
+          ></div>
           <div className="flex-1 flex items-center justify-end space-x-2 sm:space-x-6">
             <form className="flex items-center space-x-2 border bg-white rounded-md p-2 hover:border-sky-700 focus-within:border-sky-700">
               <input
@@ -73,9 +119,9 @@ const Header = () => {
             <ProfileDropDown class="hidden md:block" />
             <button
               className="outline-none text-gray-400 block md:hidden"
-              onClick={() => setMenuState(!menuState)}
+              onClick={handleToggleMenu}
             >
-              {menuState ? (
+              {isOpen ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6"
