@@ -7,7 +7,7 @@ import {
   signUpSuccess,
 } from "../store/user/userSlice";
 import { useSelector } from "react-redux";
-import GoogleLogo from "../assets/svgs/google-logo";
+import QAuth from "../components/QAuth";
 
 function SignUp() {
   const { loading, error } = useSelector((state) => state.user);
@@ -115,12 +115,7 @@ function SignUp() {
               <span className="shrink-0 px-6">Or continue with</span>
               <span className="h-px flex-1 bg-gray-300"></span>
             </span>
-            <div className="mt-5">
-              <button className="w-full flex items-center justify-center gap-x-3 py-2.5 mt-5 border rounded-lg text-sm font-medium hover:bg-gray-50 duration-150 active:bg-gray-100">
-                <GoogleLogo />
-                Continue with Google
-              </button>
-            </div>
+            <QAuth />
             <div className="text-center mt-10">
               <p className="">
                 Already have an account?{" "}

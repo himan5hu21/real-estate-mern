@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
     },
+    avatar: {
+      type: String,
+      default:
+        "https://ddjkm7nmu27lx.cloudfront.net/reviewer/c0fd1128175348f2869004fdbfdbde4e.png",
+    },
   },
   { timestamps: true }
 );
