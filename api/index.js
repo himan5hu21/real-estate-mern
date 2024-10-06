@@ -6,51 +6,50 @@ import authRouter from "./routes/auth.route.js";
 
 dotenv.config();
 
-mongoose
-  .connect(process.env.MONGO)
-  .then(() => {
+// Connect to MongoDB
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO);
     console.log("Connected to MongoDB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit the process with failure
+  }
+};
 
+// Initialize Express app
 const app = express();
-
 app.use(express.json());
 
-app.listen(3000, () => {
-  console.log("Server is runnig on port 3000");
-});
-
+// Register routes
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 
+// Error handling middleware
 app.use((err, req, res, next) => {
-  if (err.name === "ValidationError") {
-    const errors = Object.values(err.errors).map((value) => value.message);
-    return res.status(400).json({
-      success: false,
-      statusCode: 400,
-      message: errors.join(" "),
-      errors,
-    });
-  }
-
-  if (err.code && err.code === 11000) {
-    const field = Object.keys(err.keyValue);
-    return res.status(400).json({
-      success: false,
-      statusCode: 400,
-      message: `${field} already exists`,
-    });
-  }
-
   const statusCode = err.statusCode || 500;
-  const message = err.message || "An Internal Server Error Occured";
-  return res.status(statusCode).json({
+  const message =
+    err.name === "ValidationError"
+      ? Object.values(err.errors)
+          .map((value) => value.message)
+          .join(" ")
+      : err.code === 11000
+      ? `${Object.keys(err.keyValue)[0]} already exists`
+      : err.message || "An Internal Server Error Occurred";
+
+  res.status(statusCode).json({
     success: false,
     statusCode,
     message,
   });
 });
+
+// Start the server and connect to the database
+const startServer = async () => {
+  await connectDB();
+  app.listen(3000, () => {
+    console.log("Server is running on port 3000");
+  });
+};
+
+startServer();

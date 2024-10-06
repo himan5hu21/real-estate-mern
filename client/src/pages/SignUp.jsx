@@ -29,6 +29,33 @@ function SignUp() {
     );
   };
 
+  const renderInputField = (
+    label,
+    type,
+    name,
+    placeholder,
+    autoComplete,
+    isError
+  ) => (
+    <div>
+      <label className="font-medium">{label}</label>
+      <input
+        type={type}
+        required
+        className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
+          isError ? "border-red-500" : "focus:border-sky-700"
+        }`}
+        id={name}
+        name={name}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+      />
+      {isError && <div className="text-red-500 text-sm mt-1">{error}</div>}
+    </div>
+  );
+
+  const isError = (keyword) => error?.toLowerCase().includes(keyword);
+
   return (
     <section>
       <main className="w-full h-screen flex flex-col items-center justify-center bg-gray-50 sm:px-4">
@@ -46,60 +73,31 @@ function SignUp() {
           </div>
           <div className="bg-white shadow p-4 py-6 sm:p-6 sm:rounded-lg">
             <Form method="POST" onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="font-medium">Username</label>
-                <input
-                  type="text"
-                  required
-                  className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-                    error?.toLowerCase().includes("username")
-                      ? "border-red-500"
-                      : "focus:border-sky-700"
-                  }`}
-                  id="Username"
-                  name="username"
-                  placeholder="Username"
-                  autoComplete="username"
-                />
-                {error?.toLowerCase().includes("username") && (
-                  <div className="text-red-500 text-sm mt-1">{error}</div>
-                )}
-              </div>
-
-              <div>
-                <label className="font-medium">Email</label>
-                <input
-                  type="email"
-                  required
-                  className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-                    error?.toLowerCase().includes("email")
-                      ? "border-red-500"
-                      : "focus:border-sky-700"
-                  }`}
-                  id="Email"
-                  name="email"
-                  placeholder="Email"
-                  autoComplete="email"
-                />
-                {error?.toLowerCase().includes("email") && (
-                  <div className="text-red-500 text-sm mt-1">{error}</div>
-                )}
-              </div>
-              <div>
-                <label className="font-medium">Password</label>
-                <input
-                  type="password"
-                  required
-                  className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border focus:border-sky-700 shadow-sm rounded-lg`}
-                  id="Password"
-                  name="password"
-                  placeholder="Password"
-                  autoComplete="current-password"
-                />
-              </div>
-              {!excludeKeywords.some((keyword) =>
-                error?.toLowerCase().includes(keyword)
-              ) &&
+              {renderInputField(
+                "Username",
+                "text",
+                "username",
+                "Username",
+                "username",
+                isError("username")
+              )}
+              {renderInputField(
+                "Email",
+                "email",
+                "email",
+                "Email",
+                "email",
+                isError("email")
+              )}
+              {renderInputField(
+                "Password",
+                "password",
+                "password",
+                "Password",
+                "current-password",
+                false
+              )}
+              {!excludeKeywords.some((keyword) => isError(keyword)) &&
                 error?.trim().length > 0 && (
                   <div className="text-red-500 text-sm">{error}</div>
                 )}

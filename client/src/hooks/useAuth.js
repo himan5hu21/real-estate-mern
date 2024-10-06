@@ -17,19 +17,14 @@ const useAuth = () => {
     dispatch(startAction());
 
     try {
-      const config = {
-        "Content-Type": "application/json",
-      };
-
-      const res = await axios({
-        method: "POST",
-        url,
-        data: JSON.stringify(formData),
-        headers: config,
+      const res = await axios.post(url, formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       const data = await res.data;
-      if (data.success === false) {
+      if (!data.success) {
         dispatch(failureAction(data.message));
         console.error(data.message);
         return;
@@ -37,15 +32,10 @@ const useAuth = () => {
       dispatch(successAction(data));
       navigate(navigateTo, { replace: true });
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
-        dispatch(failureAction(err.response.data.message));
-      } else {
-        dispatch(
-          failureAction(
-            "Failed to authenticate due to an internal error. Please try again later."
-          )
-        );
-      }
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to authenticate due to an internal error. Please try again later.";
+      dispatch(failureAction(errorMessage));
     }
   };
 

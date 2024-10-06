@@ -30,6 +30,23 @@ function SignIn() {
     );
   };
 
+  const renderInputField = (label, type, name, placeholder, autoComplete) => (
+    <div>
+      <label className="font-medium">{label}</label>
+      <input
+        type={type}
+        required
+        className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
+          error ? "border-red-500" : "focus:border-sky-700"
+        }`}
+        id={name}
+        name={name}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+      />
+    </div>
+  );
+
   return (
     <section>
       <main className="w-full h-screen flex flex-col items-center justify-center bg-gray-50 sm:px-4">
@@ -47,34 +64,14 @@ function SignIn() {
           </div>
           <div className="bg-white shadow p-4 py-6 sm:p-6 sm:rounded-lg">
             <Form method="POST" onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="font-medium">Email</label>
-                <input
-                  type="email"
-                  required
-                  className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-                    error ? "border-red-500" : "focus:border-sky-700"
-                  }`}
-                  id="Email"
-                  name="email"
-                  placeholder="Email"
-                  autoComplete="email"
-                />
-              </div>
-              <div>
-                <label className="font-medium">Password</label>
-                <input
-                  type="password"
-                  required
-                  className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-                    error ? "border-red-500" : "focus:border-sky-700"
-                  }`}
-                  id="Password"
-                  name="password"
-                  placeholder="Password"
-                  autoComplete="current-password"
-                />
-              </div>
+              {renderInputField("Email", "email", "email", "Email", "email")}
+              {renderInputField(
+                "Password",
+                "password",
+                "password",
+                "Password",
+                "current-password"
+              )}
               {!excludeKeywords.some((keyword) =>
                 error?.toLowerCase().includes(keyword)
               ) &&

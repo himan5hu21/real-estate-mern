@@ -8,8 +8,20 @@ const useMobileScreen = () => {
       setIsMobile(window.innerWidth <= 768);
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const debounce = (func, delay) => {
+      let timeoutId;
+      return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func.apply(null, args);
+        }, delay);
+      };
+    };
+
+    const debouncedHandleResize = debounce(handleResize, 200);
+
+    window.addEventListener("resize", debouncedHandleResize);
+    return () => window.removeEventListener("resize", debouncedHandleResize);
   }, []);
 
   return isMobile;

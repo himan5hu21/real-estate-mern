@@ -10,8 +10,6 @@ function QAuth() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleOnClick = async () => {
-    // Call the OAuth API to get the access token
-    // Then, redirect the user to the sign-in page with the access token
     try {
       const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
@@ -19,20 +17,18 @@ function QAuth() {
       const result = await signInWithPopup(auth, provider);
       console.log("Successfully signed in with Google", result);
 
-      const res = await axios({
-        method: "POST",
-        url: `api/auth/google`,
-        data: JSON.stringify({
-          name: result.user.displayName,
-          email: result.user.email,
-          imageUrl: result.user.photoURL,
-        }),
+      const userData = {
+        name: result.user.displayName,
+        email: result.user.email,
+        imageUrl: result.user.photoURL,
+      };
+
+      const res = await axios.post("api/auth/google", userData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-      const data = await res.data;
-      dispatch(signInSuccess(data));
+      dispatch(signInSuccess(res.data));
       navigate("/", { replace: true });
     } catch (error) {
       console.log("Could not sign in with Google", error);

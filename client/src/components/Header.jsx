@@ -5,12 +5,13 @@ import { FaSearch } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleMenu } from "../store/menu/menuSlice";
 import useMobileScreen from "../hooks/useMobileScreen";
-import { RiCloseLargeFill } from "react-icons/ri";
+import classNames from "classnames";
 
 const Header = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.menu.isOpen);
   const isMobile = useMobileScreen();
+  const { currentUser } = useSelector((state) => state.user);
 
   const handleToggleMenu = () => {
     if (isMobile) {
@@ -20,7 +21,7 @@ const Header = () => {
 
   const navigation = [
     { title: "Home", path: "/" },
-    { title: "Properties", path: "/profile" },
+    { title: "Properties", path: "/properties" },
     { title: "About", path: "/about" },
   ];
   return (
@@ -44,27 +45,41 @@ const Header = () => {
         </div>
         <div className="flex-1 flex items-center justify-between">
           <div
-            className={
-              isMobile
-                ? `fixed top-0 right-0 w-3/4 sm:w-1/2 h-full bg-slate-200 transition-transform transform ${
-                    isOpen ? "translate-x-0" : "translate-x-full"
-                  } z-20 p-4 border-l border-gray-400`
-                : `bg-slate-200 absolute z-20 w-full top-16 left-0 p-4 border-b md:static md:block md:border-none ${
-                    isOpen ? "" : "hidden"
-                  }`
-            }
+            className={classNames(
+              "bg-slate-200 z-20 p-4 border-l border-gray-400 transition-transform",
+              {
+                "fixed top-0 right-0 w-3/4 sm:w-1/2 h-full": isMobile,
+                "absolute w-full top-16 left-0 border-b md:static md:block md:border-none":
+                  !isMobile,
+                "translate-x-0": isOpen,
+                "translate-x-full": !isOpen && isMobile,
+                hidden: !isOpen && !isMobile,
+              }
+            )}
           >
-            {isMobile ? (
-              <div className="flex justify-end">
-                <button
-                  onClick={handleToggleMenu}
-                  className="text-gray-600 hover:text-sky-600"
+            <div className="flex justify-end md:hidden">
+              <button
+                onClick={handleToggleMenu}
+                className="outline-none text-gray-400 block hover:text-sky-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <RiCloseLargeFill size={24} />
-                </button>
-              </div>
-            ) : (
-              <></>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            {currentUser && (
+              <ProfileDropDown class="mb-5 pb-5 border-b border-gray-400 md:hidden" />
             )}
 
             <ul className="mt-6 space-y-5 md:flex md:space-x-6 md:space-y-0 md:mt-0  ">
@@ -76,21 +91,15 @@ const Header = () => {
                   <NavLink
                     to={item.path}
                     className={({ isActive, isPending }) =>
-                      `nav-link ${
-                        isMobile
-                          ? "block px-4 py-2 rounded-md transition-colors duration-300"
-                          : ""
-                      }  ${
-                        isActive
-                          ? isMobile
-                            ? "bg-sky-700 text-white"
-                            : "text-sky-700 font-medium border-b-2 border-sky-700"
-                          : isPending
-                          ? "text-gray-600"
-                          : isMobile
-                          ? "text-gray-600 hover:bg-sky-600 hover:text-white"
-                          : ""
-                      }`
+                      classNames("nav-link transition-colors duration-300", {
+                        "block px-4 py-2 rounded-md hover:bg-sky-600 hover:text-white":
+                          isMobile,
+                        "text-gray-600": !isActive && !isPending,
+                        "bg-sky-700 text-white": isActive && isMobile,
+                        "text-sky-700 font-medium border-b-2 border-sky-700":
+                          isActive && !isMobile,
+                        "md:hover:text-sky-600": !isActive && !isMobile,
+                      })
                     }
                     onClick={handleToggleMenu}
                   >
@@ -99,7 +108,9 @@ const Header = () => {
                 </li>
               ))}
             </ul>
-            <ProfileDropDown class="mt-5 pt-5 border-t border-gray-400 md:hidden" />
+            {!currentUser && (
+              <ProfileDropDown class="mt-5 pt-5 border-t border-gray-400 md:hidden" />
+            )}
           </div>
           <div
             className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 ${

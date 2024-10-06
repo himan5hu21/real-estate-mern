@@ -12,6 +12,8 @@ import Error from "./pages/Error.jsx";
 import { persistor, store } from "./store/store.js";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import PrivateRoute from "./components/PrivateRoute.jsx";
+import Properties from "./pages/Properties.jsx";
 
 const router = createBrowserRouter([
   {
@@ -24,12 +26,20 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
+        path: "/properties",
+        element: <Properties />,
+      },
+      {
         path: "/about",
         element: <About />,
       },
       {
         path: "/profile",
-        element: <Profile />,
+        element: (
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        ),
       },
       {
         path: "/sign-in",
