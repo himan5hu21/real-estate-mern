@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
-import postsRouter from "./routes/posts.route.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -21,12 +21,11 @@ const connectDB = async () => {
 // Initialize Express app
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 // Register routes
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
-
-app.use("/api/posts", postsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

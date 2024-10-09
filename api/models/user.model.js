@@ -22,6 +22,16 @@ const userSchema = new mongoose.Schema(
       default:
         "https://ddjkm7nmu27lx.cloudfront.net/reviewer/c0fd1128175348f2869004fdbfdbde4e.png",
     },
+    phone: {
+      type: String,
+      unique: true,
+    },
+    address: {
+      type: String,
+    },
+    preferences: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

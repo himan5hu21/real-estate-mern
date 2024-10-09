@@ -40,9 +40,10 @@ export const signin = async (req, res, next) => {
       return next(errorHandler(401, "Invalid credentials"));
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
+
     res
       .cookie("access_token", token, { httpOnly: true })
       .status(200)
