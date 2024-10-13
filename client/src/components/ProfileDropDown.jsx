@@ -44,7 +44,7 @@ const ProfileDropDown = (props) => {
   return (
     <div className={`relative ${props.class}`}>
       {currentUser ? (
-        <ProfileDrop avatar={currentUser.avatar} />
+        <ProfileDrop />
       ) : (
         <div className="bg-transparent space-y-5 top-16 left-0 md:static md:flex md:space-y-0 md:space-x-5 ">
           <button

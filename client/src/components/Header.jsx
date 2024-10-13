@@ -92,7 +92,7 @@ const Header = () => {
                     to={item.path}
                     className={({ isActive, isPending }) =>
                       classNames("nav-link transition-colors duration-300", {
-                        "block px-4 py-2 rounded-md hover:bg-sky-600 hover:text-white":
+                        "block px-4 py-2 rounded-md hover:bg-gray-400 hover:text-white":
                           isMobile,
                         "text-gray-600": !isActive && !isPending,
                         "bg-sky-700 text-white": isActive && isMobile,

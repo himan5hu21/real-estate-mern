@@ -15,7 +15,7 @@ function QAuth() {
       const auth = getAuth(app);
 
       const result = await signInWithPopup(auth, provider);
-      console.log("Successfully signed in with Google", result);
+      // console.log("Successfully signed in with Google", result);
 
       const userData = {
         name: result.user.displayName,

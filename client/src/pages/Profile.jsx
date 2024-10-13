@@ -9,25 +9,32 @@ import {
 } from "firebase/storage";
 import { app } from "../firebase/firebaseConfig";
 import BlocksShuffle2 from "../assets/svgs/blocks-shuffle-2";
+import {
+  requestStart,
+  updateUserSuccess,
+  requestFailure,
+  updatePasswordSuccess,
+  signOutSuccess,
+} from "../store/user/userSlice";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import PasswordModal from "../components/PasswordModel";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const currentUser = useSelector((state) => state.user.currentUser.user);
+  const { currentUser } = useSelector((state) => state.user);
+  const requiredFields = ["username", "email"];
   const fileInputRef = useRef(null);
-  const [editMode, setEditMode] = useState(false);
-  const [userData, setUserData] = useState({
-    username: currentUser?.username || "",
-    email: currentUser?.email || "",
-    phone: currentUser?.phone || "",
-    address: currentUser?.address || "",
-    preferences: currentUser?.preferences || "",
-    avatar: currentUser?.avatar || "",
-  });
-  const [formData, setFormData] = useState(userData); // Holds the temporary user data
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState(currentUser); // Holds the temporary user data
   const [newImage, setNewImage] = useState(null); // Holds the new image for preview
   const [file, setFile] = useState(undefined); // Holds the file name which going to upload to the firebase server
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const { loading, error } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // firebase storage
   // allow read;
@@ -35,138 +42,236 @@ const Profile = () => {
   // request.resource.size < 2 * 1024 * 1024 &&
   // request.resource.contentType.matches('image/.*')
 
-  // useEffect(() => {
-  //   if (file) {
-  //     handleFileUpload(file);
-  //   }
-  // }, [file]);
-
   const handleFileUpload = (file) => {
-    const storage = getStorage(app);
-    const timestamp = new Date().getTime();
-    const fileName = `${timestamp}_${file.name}`;
-    const storageRef = ref(storage, fileName);
+    return new Promise((resolve, reject) => {
+      const storage = getStorage(app);
+      const timestamp = new Date().getTime();
+      const fileName = `${timestamp}_${file.name}`;
+      const storageRef = ref(storage, fileName);
 
-    const uploadTask = uploadBytesResumable(storageRef, file);
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFilePerc(Math.round(progress));
-        setLoading(true);
-      },
-      (error) => {
-        setFileUploadError(true);
-        setLoading(false);
-        console.error(error);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setUserData({ ...formData, avatar: downloadURL });
-          setLoading(false);
-          setEditMode(false);
-        });
-      }
-    );
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setFilePerc(Math.round(progress));
+        },
+        (error) => {
+          setFileUploadError(true);
+          dispatch(requestFailure(error.message));
+          reject(error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+          resolve(downloadURL);
+        }
+      );
+    });
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const trueValue = value.trim().length > 0 ? value : "";
+    setFormData({
+      ...formData,
+      [name]: trueValue,
+    });
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
+      const imageUrl = URL.createObjectURL(file); // Temporary URL for image preview
       setNewImage(imageUrl); // Display preview of the new image
       setFile(file);
-      console.log(imageUrl);
-      // setNewImage(file); // Save the new image for upload later
     }
   };
 
   const toggleEditMode = () => {
-    setEditMode(!editMode);
+    setIsEditing(!isEditing);
+    setFormData(currentUser);
     setNewImage(null); // Reset image preview when exiting edit mode
-  };
-
-  const handleSave = () => {
-    // Save the new profile image and other user data
-    if (newImage) {
-      handleFileUpload(file);
-    } else {
-      setUserData(formData);
-      setEditMode(false);
-    }
+    setFileUploadError(false);
+    setFilePerc(0);
   };
 
   const handleCancel = () => {
-    setEditMode(false);
-    setNewImage(null); // Reset image preview if canceled
-    setFormData(userData);
+    toggleEditMode();
+    dispatch(requestFailure("Canceled by the user"));
   };
 
-  const handleClick = () => {
-    fileInputRef.current.click();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    dispatch(requestStart());
+
+    try {
+      let updatedFormData = { ...formData };
+
+      if (newImage) {
+        const downloadURL = await handleFileUpload(file);
+        updatedFormData = { ...formData, avatar: downloadURL };
+      }
+
+      const res = await axios.patch(
+        `/api/user/update/${currentUser._id}`,
+        updatedFormData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await res.data;
+      if (!data.success) {
+        dispatch(requestFailure(data.message));
+        return;
+      }
+      dispatch(updateUserSuccess(data));
+      toggleEditMode();
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to authenticate due to an internal error. Please try again later.";
+      dispatch(requestFailure(errorMessage));
+    }
   };
 
-  const userDataAndInput = (title, type, name, value) => {
-    return (
-      <div className="my-0">
-        <label className="ml-2 block text-sm font-semibold text-gray-600">
-          {title}
-        </label>
-        {editMode ? (
+  const handlePasswordModalOpen = () => {
+    setIsPasswordModalOpen(true);
+  };
+
+  const handlePasswordModalClose = () => {
+    setIsPasswordModalOpen(false);
+  };
+
+  const handlePasswordChange = async (passwords) => {
+    dispatch(requestStart());
+    try {
+      const { currentPassword, newPassword } = passwords;
+      const res = await axios.patch(
+        `/api/user/update/password/${currentUser._id}`,
+        { currentPassword, newPassword },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await res.data;
+      if (!data.success) {
+        dispatch(requestFailure(data.message));
+        return { success: false, message: data.message };
+      }
+      dispatch(updatePasswordSuccess(data));
+      handlePasswordModalClose();
+      return { success: true };
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to authenticate due to an internal error. Please try again later.";
+      dispatch(requestFailure(errorMessage));
+      return { success: false, errorMessage };
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    dispatch(requestStart());
+    try {
+      const res = await axios.delete(`/api/user/delete/${currentUser._id}`);
+      const data = await res.data;
+      if (!data.success) {
+        dispatch(requestFailure(data.message));
+        return;
+      }
+      dispatch(signOutSuccess());
+      navigate("/", { replace: true });
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to authenticate due to an internal error. Please try again later.";
+      dispatch(requestFailure(errorMessage));
+    }
+  };
+
+  const handleLogOut = async () => {
+    dispatch(requestStart());
+    requestStart();
+    try {
+      const res = await axios.get("/api/auth/signout");
+      const data = await res.data;
+      if (!data.success) {
+        requestFailure(data.message);
+        return;
+      }
+      dispatch(signOutSuccess());
+      navigate("/", { replace: true });
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to authenticate due to an internal error. Please try again later.";
+      dispatch(requestFailure(errorMessage));
+    }
+  };
+
+  const isError = (keyword) => error?.toLowerCase().includes(keyword);
+
+  const userInput = (title, type, name, value, isError) => (
+    <div className="flex flex-col">
+      <label className="text-sm font-medium text-gray-600">{title}</label>
+      {isEditing ? (
+        <>
           <input
             type={type}
             name={name}
             value={value || ""}
-            placeholder={`Enter your ${name}`}
             onChange={handleChange}
-            className="mx-2 w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
+            placeholder={`Enter your ${name}`}
+            className="mt-1 p-2 border rounded-md outline-none focus:ring focus:ring-sky-700"
+            required={requiredFields.includes(name)}
           />
-        ) : (
-          <p className={`mx-2 text-lg text-gray-800`}>{value || "-"}</p>
-        )}
-      </div>
-    );
-  };
+          {isError && <div className="text-red-500 text-sm mt-1">{error}</div>}
+        </>
+      ) : (
+        <span className="mt-1 text-gray-800">{value || "-"}</span>
+      )}
+    </div>
+  );
+
+  const buttonsAndLabel = (title, value, handleClick) => (
+    <div className="flex justify-between items-center mb-4">
+      <div className="text-sm font-medium text-gray-600">{title}</div>
+      <button
+        onClick={handleClick}
+        className={`w-36 border-2 border-sky-700 hover:bg-sky-700  text-sky-700 hover:text-white px-3 py-1 rounded-md text-sm transition-all duration-300`}
+      >
+        {value}
+      </button>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 flex justify-center">
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden h-fit w-11/12 md:w-2/3 lg:w-1/2">
-        {/* Profile Header */}
-        <div className="relative bg-gradient-to-r from-sky-500 to-sky-700 h-36 flex justify-center items-center">
-          <h2 className="text-white text-3xl font-bold tracking-wide">
-            My Profile
-          </h2>
-          {!editMode && (
-            <button
-              className="absolute top-5 right-5 text-white text-xl focus:outline-none"
-              onClick={toggleEditMode}
-              title="Edit Profile"
-            >
-              <FaEdit className="hover:text-sky-50" />
-            </button>
-          )}
-        </div>
-
-        <div className="p-8">
-          {/* Profile Image */}
-          <div className="flex justify-center mb-8">
-            {editMode ? (
-              <div className="flex flex-col items-center">
-                {/* Image Preview */}
-                <label htmlFor="image-upload">
-                  <img
-                    src={newImage || userData.avatar}
-                    alt="Profile Preview"
-                    className="relative -mt-20 w-32 h-32 rounded-full object-cover border-4 bg-white border-white shadow-lg transition-transform transform hover:scale-105"
-                  />
-                </label>
+    <div className="container mx-auto p-4 md:p-8 bg-gray-100">
+      {/* Profile Photo Section */}
+      <form onSubmit={handleSubmit}>
+        <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold mb-6">Profile Photo</h2>
+          <div className="relative mb-4">
+            <img
+              src={
+                newImage ||
+                currentUser.avatar ||
+                "https://via.placeholder.com/150"
+              }
+              alt="Profile"
+              className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-gray-300 shadow-lg hover:scale-105 hover:transition-transform duration-300"
+            />
+            {isEditing && (
+              <>
                 <p>
                   {fileUploadError ? (
                     <span className="text-red-700">
@@ -184,13 +289,19 @@ const Profile = () => {
                     ""
                   )}
                 </p>
-                {/* File Input for Image */}
-                <button
-                  className="mt-3 px-3 py-2 text-white rounded-md bg-sky-700 hover:bg-sky-600 transition-colors duration-300"
-                  onClick={handleClick}
-                >
-                  Change Image
-                </button>
+                <label className="block mt-4">
+                  <span className="inline-block px-4 py-2 border-2 border-sky-700 hover:bg-sky-700 text-sky-700 hover:text-white font-semibold rounded-md cursor-pointer transition-all duration-300">
+                    Upload Photo
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                      ref={fileInputRef}
+                    />
+                  </span>
+                </label>
                 <input
                   id="image-upload"
                   type="file"
@@ -199,77 +310,75 @@ const Profile = () => {
                   onChange={handleImageChange}
                   ref={fileInputRef}
                 />
-              </div>
-            ) : (
-              <img
-                src={userData.avatar}
-                alt="Profile"
-                className="relative -mt-20 w-32 h-32 rounded-full object-cover border-4 bg-white border-white shadow-lg transition-transform transform hover:scale-105"
-              />
+              </>
             )}
           </div>
+        </div>
 
-          {/* User Info */}
-          <div className="space-y-6">
-            {userDataAndInput(
+        {/* Personal Info Section */}
+        <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 mt-8">
+          <h2 className="text-xl font-semibold mb-6">Personal Info</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {userInput(
+              "Name",
+              "text",
+              "name",
+              isEditing ? formData.name : currentUser.name,
+              false
+            )}
+            {userInput(
               "Username",
               "text",
               "username",
-              userData.username
+              isEditing ? formData.username : currentUser.username,
+              isError("username")
             )}
-            <hr />
-            {userDataAndInput(
+            {userInput(
               "Email",
-              "text",
               "email",
-              editMode ? formData.email : userData.email
+              "email",
+              isEditing ? formData.email : currentUser.email,
+              isError("email")
             )}
-            <hr />
-            {userDataAndInput(
+            {userInput(
               "Phone",
               "tel",
               "phone",
-              editMode ? formData.phone : userData.phone
+              isEditing ? formData.phone : currentUser.phone,
+              isError("phone")
             )}
-            <hr />
-            {userDataAndInput(
-              "Address",
-              "text",
-              "address",
-              editMode ? formData.address : userData.address
-            )}
-            <hr />
-            {userDataAndInput(
+            {userInput(
               "Preferences",
               "text",
               "preferences",
-              editMode ? formData.preferences : userData.preferences
+              isEditing ? formData.preferences : currentUser.preferences,
+              false
             )}
-            {!editMode && <hr />}
           </div>
 
-          {/* Action Buttons */}
-          {editMode && (
-            <div className="mt-8 flex justify-end space-x-4">
+          {/* Save and Cancel Buttons */}
+          {isEditing && (
+            <div className="mt-6 flex space-x-4">
               <button
-                className="flex items-center px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                onClick={handleSave}
-                disabled={loading}
+                type="submit"
+                className="flex items-center border-2 border-sky-700 text-sky-700 px-4 py-2 rounded-md hover:bg-sky-700 hover:text-white transition-colors duration-300"
               >
                 {loading ? (
                   <>
-                    <BlocksShuffle2 className="w-6 h-6" /> Saving...
+                    <BlocksShuffle2 className="w-6 h-6 mr-2 hover:text-sky-700" />
+                    Saving...
                   </>
                 ) : (
                   <>
                     <FaSave className="mr-2" />
-                    Save
+                    Save Changes
                   </>
                 )}
               </button>
               <button
-                className="flex items-center px-5 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                type="button"
                 onClick={handleCancel}
+                className="flex items-center border-2 border-gray-500 text-gray-500 px-4 py-2 rounded-md hover:bg-gray-500 hover:text-white transition-colors duration-300"
               >
                 <FaTimes className="mr-2" />
                 Cancel
@@ -277,23 +386,43 @@ const Profile = () => {
             </div>
           )}
 
-          <div className="flex gap-4 justify-between mt-6">
-            <button
-              className="flex items-center px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              // onClick={handleDeleteAccount}
-            >
-              <FaTimes className="mr-2" />
-              Delete Account
-            </button>
-            <button
-              className="flex items-center px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              // onClick={handleLogout}
-            >
-              Log Out
-            </button>
-          </div>
+          {!isEditing && (
+            <div className="mt-6">
+              <button
+                onClick={toggleEditMode}
+                className="flex items-center border-2 border-sky-700 text-sky-700 px-4 py-2 rounded-md hover:bg-sky-700 hover:text-white transition-colors duration-300"
+              >
+                <FaEdit className="mr-2" />
+                Edit Profile
+              </button>
+            </div>
+          )}
         </div>
+      </form>
+
+      {/* Sign in & Security Section */}
+      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 mt-8">
+        <h2 className="text-xl font-semibold mb-6">Sign in & Security</h2>
+
+        {buttonsAndLabel(
+          "Password",
+          "Change password",
+          handlePasswordModalOpen
+        )}
+        {buttonsAndLabel(
+          "Delete My Accout",
+          "Delete Account",
+          handleDeleteAccount
+        )}
+        {buttonsAndLabel("Log Out", "Log Out", handleLogOut)}
       </div>
+
+      {/* Render the Password Modal */}
+      <PasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={handlePasswordModalClose}
+        onSubmit={handlePasswordChange}
+      />
     </div>
   );
 };

@@ -26,7 +26,6 @@ const useAuth = () => {
       const data = await res.data;
       if (!data.success) {
         dispatch(failureAction(data.message));
-        console.error(data.message);
         return;
       }
       dispatch(successAction(data));

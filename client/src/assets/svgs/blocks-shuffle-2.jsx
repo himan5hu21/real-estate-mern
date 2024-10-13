@@ -8,7 +8,7 @@ export default function BlocksShuffle2(props) {
       width="24" // Adjust the width as necessary
       height="24" // Adjust the height as necessary
       viewBox="0 0 24 24"
-      style={{ color: "#fff" }}
+      // style={{ color: "#fff" }}
       xmlns="http://www.w3.org/2000/svg"
       className={className} // Allow passing className for styling
     >

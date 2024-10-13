@@ -2,8 +2,8 @@ import { Form } from "react-router-dom";
 import BlocksShuffle2 from "../assets/svgs/blocks-shuffle-2";
 import useAuth from "../hooks/useAuth";
 import {
-  signUpFailure,
-  signUpStart,
+  requestStart,
+  requestFailure,
   signUpSuccess,
 } from "../store/user/userSlice";
 import { useSelector } from "react-redux";
@@ -22,9 +22,9 @@ function SignUp() {
     handleAuth(
       "/api/auth/signup",
       formData,
-      signUpStart,
+      requestStart,
       signUpSuccess,
-      signUpFailure,
+      requestFailure,
       "/sign-in"
     );
   };
@@ -43,7 +43,7 @@ function SignUp() {
         type={type}
         required
         className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-          isError ? "border-red-500" : "focus:border-sky-700"
+          isError ? "border-red-500" : "focus:ring focus:ring-sky-700"
         }`}
         id={name}
         name={name}

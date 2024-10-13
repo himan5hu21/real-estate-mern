@@ -3,9 +3,9 @@ import BlocksShuffle2 from "../assets/svgs/blocks-shuffle-2";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
-  signInStart,
   signInSuccess,
-  signInFailure,
+  requestStart,
+  requestFailure,
 } from "../store/user/userSlice";
 import useAuth from "../hooks/useAuth";
 import QAuth from "../components/QAuth";
@@ -23,9 +23,9 @@ function SignIn() {
     handleAuth(
       "/api/auth/signin",
       formData,
-      signInStart,
+      requestStart,
       signInSuccess,
-      signInFailure,
+      requestFailure,
       "/"
     );
   };
@@ -37,7 +37,7 @@ function SignIn() {
         type={type}
         required
         className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-          error ? "border-red-500" : "focus:border-sky-700"
+          error ? "border-red-500" : "focus:ring focus:ring-sky-700"
         }`}
         id={name}
         name={name}
@@ -78,10 +78,7 @@ function SignIn() {
                 error?.trim().length > 0 && (
                   <div className="text-red-500 text-sm">{error}</div>
                 )}
-              <button
-                disabled={loading}
-                className="w-full px-4 py-2 text-white font-medium bg-sky-700 hover:bg-sky-600 active:bg-sky-700 rounded-lg duration-150 flex items-center justify-center"
-              >
+              <button className="w-full px-4 py-2 text-white font-medium bg-sky-700 hover:bg-sky-600 active:bg-sky-700 rounded-lg duration-150 flex items-center justify-center">
                 {loading ? <BlocksShuffle2 className="w-6 h-6" /> : "Sign In"}
               </button>
               <div className="text-center">
