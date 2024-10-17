@@ -1,223 +1,38 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { useSelector } from "react-redux";
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { app } from "../firebase/firebaseConfig";
 import BlocksShuffle2 from "../assets/svgs/blocks-shuffle-2";
-import {
-  requestStart,
-  updateUserSuccess,
-  requestFailure,
-  updatePasswordSuccess,
-  signOutSuccess,
-} from "../store/user/userSlice";
-import { useDispatch } from "react-redux";
-import axios from "axios";
 import PasswordModal from "../components/PasswordModel";
-import { useNavigate } from "react-router-dom";
+import useProfileForm from "../hooks/useProfileForm";
+import useChangePassword from "../hooks/useChangePassword";
+import { Form } from "react-router-dom";
 
 const Profile = () => {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const requiredFields = ["username", "email"];
   const fileInputRef = useRef(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(currentUser); // Holds the temporary user data
-  const [newImage, setNewImage] = useState(null); // Holds the new image for preview
-  const [file, setFile] = useState(undefined); // Holds the file name which going to upload to the firebase server
-  const [filePerc, setFilePerc] = useState(0);
-  const [fileUploadError, setFileUploadError] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const { loading, error } = useSelector((state) => state.user);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  // firebase storage
-  // allow read;
-  // allow write: if
-  // request.resource.size < 2 * 1024 * 1024 &&
-  // request.resource.contentType.matches('image/.*')
+  const {
+    formData,
+    newImage,
+    isEditing,
+    fileUploadError,
+    filePerc,
+    handleSubmit,
+    handleChange,
+    handleImageChange,
+    toggleEditMode,
+    handleCancel,
+    handleDeleteAccount,
+    handleLogOut,
+  } = useProfileForm(currentUser);
 
-  const handleFileUpload = (file) => {
-    return new Promise((resolve, reject) => {
-      const storage = getStorage(app);
-      const timestamp = new Date().getTime();
-      const fileName = `${timestamp}_${file.name}`;
-      const storageRef = ref(storage, fileName);
-
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setFilePerc(Math.round(progress));
-        },
-        (error) => {
-          setFileUploadError(true);
-          dispatch(requestFailure(error.message));
-          reject(error);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-
-          resolve(downloadURL);
-        }
-      );
-    });
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const trueValue = value.trim().length > 0 ? value : "";
-    setFormData({
-      ...formData,
-      [name]: trueValue,
-    });
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file); // Temporary URL for image preview
-      setNewImage(imageUrl); // Display preview of the new image
-      setFile(file);
-    }
-  };
-
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-    setFormData(currentUser);
-    setNewImage(null); // Reset image preview when exiting edit mode
-    setFileUploadError(false);
-    setFilePerc(0);
-  };
-
-  const handleCancel = () => {
-    toggleEditMode();
-    dispatch(requestFailure("Canceled by the user"));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    dispatch(requestStart());
-
-    try {
-      let updatedFormData = { ...formData };
-
-      if (newImage) {
-        const downloadURL = await handleFileUpload(file);
-        updatedFormData = { ...formData, avatar: downloadURL };
-      }
-
-      const res = await axios.patch(
-        `/api/user/update/${currentUser._id}`,
-        updatedFormData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await res.data;
-      if (!data.success) {
-        dispatch(requestFailure(data.message));
-        return;
-      }
-      dispatch(updateUserSuccess(data));
-      toggleEditMode();
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "Failed to authenticate due to an internal error. Please try again later.";
-      dispatch(requestFailure(errorMessage));
-    }
-  };
-
-  const handlePasswordModalOpen = () => {
-    setIsPasswordModalOpen(true);
-  };
-
-  const handlePasswordModalClose = () => {
-    setIsPasswordModalOpen(false);
-  };
-
-  const handlePasswordChange = async (passwords) => {
-    dispatch(requestStart());
-    try {
-      const { currentPassword, newPassword } = passwords;
-      const res = await axios.patch(
-        `/api/user/update/password/${currentUser._id}`,
-        { currentPassword, newPassword },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await res.data;
-      if (!data.success) {
-        dispatch(requestFailure(data.message));
-        return { success: false, message: data.message };
-      }
-      dispatch(updatePasswordSuccess(data));
-      handlePasswordModalClose();
-      return { success: true };
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "Failed to authenticate due to an internal error. Please try again later.";
-      dispatch(requestFailure(errorMessage));
-      return { success: false, errorMessage };
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    dispatch(requestStart());
-    try {
-      const res = await axios.delete(`/api/user/delete/${currentUser._id}`);
-      const data = await res.data;
-      if (!data.success) {
-        dispatch(requestFailure(data.message));
-        return;
-      }
-      dispatch(signOutSuccess());
-      navigate("/", { replace: true });
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "Failed to authenticate due to an internal error. Please try again later.";
-      dispatch(requestFailure(errorMessage));
-    }
-  };
-
-  const handleLogOut = async () => {
-    dispatch(requestStart());
-    requestStart();
-    try {
-      const res = await axios.get("/api/auth/signout");
-      const data = await res.data;
-      if (!data.success) {
-        requestFailure(data.message);
-        return;
-      }
-      dispatch(signOutSuccess());
-      navigate("/", { replace: true });
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "Failed to authenticate due to an internal error. Please try again later.";
-      dispatch(requestFailure(errorMessage));
-    }
-  };
-
+  const {
+    isPasswordModalOpen,
+    handlePasswordModalOpen,
+    handlePasswordModalClose,
+    handlePasswordChange,
+  } = useChangePassword(currentUser);
   const isError = (keyword) => error?.toLowerCase().includes(keyword);
 
   const userInput = (title, type, name, value, isError) => (
@@ -257,7 +72,7 @@ const Profile = () => {
   return (
     <div className="container mx-auto p-4 md:p-8 bg-gray-100">
       {/* Profile Photo Section */}
-      <form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit}>
         <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 text-center">
           <h2 className="text-xl font-semibold mb-6">Profile Photo</h2>
           <div className="relative mb-4">
@@ -302,14 +117,6 @@ const Profile = () => {
                     />
                   </span>
                 </label>
-                <input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  className="mt-4 text-sm hidden"
-                  onChange={handleImageChange}
-                  ref={fileInputRef}
-                />
               </>
             )}
           </div>
@@ -348,6 +155,13 @@ const Profile = () => {
               isError("phone")
             )}
             {userInput(
+              "Address",
+              "text",
+              "address",
+              isEditing ? formData.address : currentUser.address,
+              false
+            )}
+            {userInput(
               "Preferences",
               "text",
               "preferences",
@@ -361,7 +175,8 @@ const Profile = () => {
             <div className="mt-6 flex space-x-4">
               <button
                 type="submit"
-                className="flex items-center border-2 border-sky-700 text-sky-700 px-4 py-2 rounded-md hover:bg-sky-700 hover:text-white transition-colors duration-300"
+                disabled={loading}
+                className="flex items-center border-2 border-sky-700 text-sky-700 px-4 py-2 rounded-md hover:bg-sky-700 hover:text-white transition-colors duration-300 disabled:hover:bg-sky-500 disabled:cursor-not-allowed disabled:hover:border-sky-500"
               >
                 {loading ? (
                   <>
@@ -378,7 +193,8 @@ const Profile = () => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex items-center border-2 border-gray-500 text-gray-500 px-4 py-2 rounded-md hover:bg-gray-500 hover:text-white transition-colors duration-300"
+                disabled={loading}
+                className="flex items-center border-2 border-gray-500 text-gray-500 px-4 py-2 rounded-md hover:bg-gray-500 hover:text-white transition-colors duration-300 disabled:cursor-not-allowed"
               >
                 <FaTimes className="mr-2" />
                 Cancel
@@ -398,7 +214,7 @@ const Profile = () => {
             </div>
           )}
         </div>
-      </form>
+      </Form>
 
       {/* Sign in & Security Section */}
       <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 mt-8">

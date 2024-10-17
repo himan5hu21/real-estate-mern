@@ -18,6 +18,10 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
+    requestCancelled: (state) => {
+      state.loading = false;
+      state.error = null;
+    },
     signInSuccess: (state, action) => {
       state.currentUser = action.payload.user;
       state.loading = false;
@@ -48,6 +52,7 @@ const userSlice = createSlice({
 export const {
   requestStart,
   requestFailure,
+  requestCancelled,
   signInSuccess,
   signUpSuccess,
   updateUserSuccess,

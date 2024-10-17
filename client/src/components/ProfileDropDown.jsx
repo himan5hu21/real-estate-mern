@@ -36,7 +36,7 @@ const ProfileDropDown = (props) => {
         "text-sky-700 border-b-2 border-sky-700 md:text-white md:border-none":
           isActive && !isMobile,
         "text-gray-600": isPending,
-        "text-gray-600 hover:bg-sky-600 hover:text-white":
+        "text-gray-600 hover:bg-gray-400 hover:text-white":
           !isActive && isMobile,
       }
     );

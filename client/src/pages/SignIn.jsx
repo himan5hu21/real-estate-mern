@@ -9,10 +9,19 @@ import {
 } from "../store/user/userSlice";
 import useAuth from "../hooks/useAuth";
 import QAuth from "../components/QAuth";
+import useProfileForm from "../hooks/useProfileForm";
+import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function SignIn() {
   const { loading, error } = useSelector((state) => state.user);
   const { handleAuth } = useAuth();
+  const { formData, handleChange } = useProfileForm();
+
+  const [showPassword, setShowPassword] = useState({
+    email: false,
+    password: false,
+  });
 
   const excludeKeywords = ["username", "email"];
 
@@ -30,20 +39,48 @@ function SignIn() {
     );
   };
 
-  const renderInputField = (label, type, name, placeholder, autoComplete) => (
-    <div>
+  const toggleShowPassword = (field) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const renderInputField = (
+    label,
+    type,
+    name,
+    visible,
+    placeholder,
+    autoComplete
+  ) => (
+    <div className="relative">
       <label className="font-medium">{label}</label>
-      <input
-        type={type}
-        required
-        className={`w-full mt-2 px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
-          error ? "border-red-500" : "focus:ring focus:ring-sky-700"
-        }`}
-        id={name}
-        name={name}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-      />
+      <div className="relative w-full mt-2">
+        <input
+          type={visible ? "text" : type}
+          required
+          className={`w-full px-3 py-2 text-gray-500 bg-transparent outline-none border shadow-sm rounded-lg ${
+            error ? "border-red-500" : "focus:ring focus:ring-sky-700"
+          }`}
+          id={name}
+          name={name}
+          value={formData?.[name] || ""}
+          onChange={handleChange}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+        />
+        {name === "password" || name === "confirmPassword" ? (
+          <span
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 cursor-pointer opacity-70"
+            onClick={() => toggleShowPassword(name)}
+          >
+            {visible ? <FaEyeSlash /> : <FaEye />}
+          </span>
+        ) : (
+          <></>
+        )}
+      </div>
     </div>
   );
 
@@ -64,11 +101,19 @@ function SignIn() {
           </div>
           <div className="bg-white shadow p-4 py-6 sm:p-6 sm:rounded-lg">
             <Form method="POST" onSubmit={handleSubmit} className="space-y-5">
-              {renderInputField("Email", "email", "email", "Email", "email")}
+              {renderInputField(
+                "Email",
+                "email",
+                "email",
+                showPassword.email,
+                "Email",
+                "email"
+              )}
               {renderInputField(
                 "Password",
                 "password",
                 "password",
+                showPassword.password,
                 "Password",
                 "current-password"
               )}

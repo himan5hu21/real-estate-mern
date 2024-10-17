@@ -10,7 +10,7 @@ import {
 } from "../store/user/userSlice";
 import classNames from "classnames";
 import useDropdown from "../hooks/useDropDown";
-import axios from "axios";
+import { userSignOut } from "../services/service";
 
 const ProfileDrop = React.memo(() => {
   const profileRef = useRef();
@@ -38,7 +38,7 @@ const ProfileDrop = React.memo(() => {
     dispatch(requestStart());
 
     try {
-      const res = await axios.get(`/api/auth/signout`);
+      const res = await userSignOut();
       const data = await res.data;
 
       if (!data.success) {
