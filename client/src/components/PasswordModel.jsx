@@ -4,6 +4,48 @@ import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 import BlocksShuffle2 from "../assets/svgs/blocks-shuffle-2";
 
+const PasswordInputs = ({
+  title,
+  name,
+  visible,
+  value,
+  onChange,
+  togglevisibility,
+}) => (
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {title}
+    </label>
+    <div className="relative">
+      <input
+        type={visible ? "text" : "password"}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full p-2 border rounded-md focus:ring focus:ring-sky-600 outline-none"
+        placeholder={`Enter ${title}`}
+        autoComplete="new-password"
+        required
+      />
+      <span
+        className="absolute right-4 top-3 text-gray-600 cursor-pointer opacity-70"
+        onClick={() => togglevisibility(name)}
+      >
+        {visible ? <FaEyeSlash /> : <FaEye />}
+      </span>
+    </div>
+  </div>
+);
+
+PasswordInputs.propTypes = {
+  title: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  visible: PropTypes.bool.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  togglevisibility: PropTypes.func.isRequired,
+};
+
 const PasswordModal = ({ isOpen, onClose, onSubmit }) => {
   const { loading, error } = useSelector((state) => state.user);
 
@@ -24,9 +66,10 @@ const PasswordModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const trueValue = value.trim().length > 0 ? value : "";
     setPasswords({
       ...passwords,
-      [name]: value,
+      [name]: trueValue,
     });
   };
 
@@ -70,32 +113,6 @@ const PasswordModal = ({ isOpen, onClose, onSubmit }) => {
     }
   };
 
-  const passwordInputs = (title, name, visible, value) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {title}
-      </label>
-      <div className="relative">
-        <input
-          type={visible ? "text" : "password"}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          className="w-full p-2 border rounded-md focus:ring focus:ring-sky-600 outline-none"
-          placeholder={`Enter ${title}`}
-          autoComplete="new-password"
-          required
-        />
-        <span
-          className="absolute right-4 top-3 text-gray-600 cursor-pointer opacity-70"
-          onClick={() => toggleShowPassword(name)}
-        >
-          {visible ? <FaEyeSlash /> : <FaEye />}
-        </span>
-      </div>
-    </div>
-  );
-
   return (
     isOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -112,24 +129,33 @@ const PasswordModal = ({ isOpen, onClose, onSubmit }) => {
             />
 
             {/* Current Password Input */}
-            {passwordInputs(
-              "Current Password",
-              "currentPassword",
-              showPassword.currentPassword,
-              passwords.currentPassword
-            )}
-            {passwordInputs(
-              "New Password",
-              "newPassword",
-              showPassword.newPassword,
-              passwords.newPassword
-            )}
-            {passwordInputs(
-              "Confirm Password",
-              "confirmPassword",
-              showPassword.confirmPassword,
-              passwords.confirmPassword
-            )}
+
+            <PasswordInputs
+              title="Current Password"
+              name="currentPassword"
+              visible={showPassword.currentPassword}
+              value={passwords.currentPassword}
+              onChange={handleChange}
+              togglevisibility={toggleShowPassword}
+            />
+
+            <PasswordInputs
+              title="New Password"
+              name="newPassword"
+              visible={showPassword.newPassword}
+              value={passwords.newPassword}
+              onChange={handleChange}
+              togglevisibility={toggleShowPassword}
+            />
+
+            <PasswordInputs
+              title="Confirm Password"
+              name="confirmPassword"
+              visible={showPassword.confirmPassword}
+              value={passwords.confirmPassword}
+              onChange={handleChange}
+              togglevisibility={toggleShowPassword}
+            />
 
             {(errorMessage || error) && (
               <p className="text-red-500 text-sm mb-4">

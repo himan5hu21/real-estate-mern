@@ -26,7 +26,9 @@ const Header = () => {
   ];
   return (
     <nav className="bg-slate-200 shadow-md border-b">
+      {/* Header */}
       <div className="flex items-center space-x-8 py-3 px-4 max-w-screen-xl mx-auto md:px-8">
+        {/* Logo */}
         <div className="flex-none md:flex-initial">
           <NavLink
             to="/"
@@ -43,7 +45,9 @@ const Header = () => {
             </h1>
           </NavLink>
         </div>
+
         <div className="flex-1 flex items-center justify-between">
+          {/* Mobile Menu Close Button */}
           <div
             className={classNames(
               "bg-slate-200 z-20 p-4 border-l border-gray-400 transition-transform",
@@ -78,6 +82,8 @@ const Header = () => {
                 </svg>
               </button>
             </div>
+
+            {/* Navigation List */}
             {currentUser && (
               <ProfileDropDown class="mb-5 pb-5 border-b border-gray-400 md:hidden" />
             )}
@@ -108,17 +114,22 @@ const Header = () => {
                 </li>
               ))}
             </ul>
+
             {!currentUser && (
               <ProfileDropDown class="mt-5 pt-5 border-t border-gray-400 md:hidden" />
             )}
           </div>
+
+          {/* Navigation Open Button */}
           <div
-            className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 ${
+            className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 transition-all duration-500 ${
               isOpen ? "block" : "hidden"
             }`}
             onClick={handleToggleMenu}
           ></div>
+
           <div className="flex-1 flex items-center justify-end space-x-2 sm:space-x-6">
+            {/* Search Input */}
             <form className="flex items-center space-x-2 border bg-white rounded-md p-2 hover:border-sky-700 focus-within:border-sky-700">
               <input
                 className="w-full mx-2 bg-transparent outline-none appearance-none placeholder-gray-500 text-gray-500 sm:w-auto"
@@ -127,9 +138,13 @@ const Header = () => {
               />
               <FaSearch className="px-2 w-10 cursor-pointer hover:text-sky-700" />
             </form>
+
+            {/* Profile Dropdown */}
             <ProfileDropDown class="hidden md:block" />
+
+            {/* Mobile Menu Open Button */}
             <button
-              className="outline-none text-gray-400 block md:hidden"
+              className="outline-none text-gray-400 hover:text-sky-600 block md:hidden"
               onClick={handleToggleMenu}
             >
               {isOpen ? (

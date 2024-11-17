@@ -6,6 +6,51 @@ import PasswordModal from "../components/PasswordModel";
 import useProfileForm from "../hooks/useProfileForm";
 import useChangePassword from "../hooks/useChangePassword";
 import { Form } from "react-router-dom";
+import PropTypes from "prop-types";
+
+const UserInput = ({
+  title,
+  type,
+  name,
+  value,
+  isError,
+  isEditing,
+  handleChange,
+  requiredFields,
+  error,
+}) => (
+  <div className="flex flex-col">
+    <label className="text-sm font-medium text-gray-600">{title}</label>
+    {isEditing ? (
+      <>
+        <input
+          type={type}
+          name={name}
+          value={value || ""}
+          onChange={handleChange}
+          placeholder={`Enter your ${name}`}
+          className="mt-1 p-2 border rounded-md outline-none focus:ring focus:ring-sky-700"
+          required={requiredFields.includes(name)}
+        />
+        {isError && <div className="text-red-500 text-sm mt-1">{error}</div>}
+      </>
+    ) : (
+      <span className="mt-1 text-gray-800">{value || "-"}</span>
+    )}
+  </div>
+);
+
+UserInput.propTypes = {
+  title: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  isError: PropTypes.bool,
+  isEditing: PropTypes.bool.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  requiredFields: PropTypes.array.isRequired,
+  error: PropTypes.string,
+};
 
 const Profile = () => {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -33,31 +78,93 @@ const Profile = () => {
     handlePasswordModalClose,
     handlePasswordChange,
   } = useChangePassword(currentUser);
+
   const isError = (keyword) => error?.toLowerCase().includes(keyword);
 
-  const userInput = (title, type, name, value, isError) => (
-    <div className="flex flex-col">
-      <label className="text-sm font-medium text-gray-600">{title}</label>
-      {isEditing ? (
-        <>
-          <input
-            type={type}
-            name={name}
-            value={value || ""}
-            onChange={handleChange}
-            placeholder={`Enter your ${name}`}
-            className="mt-1 p-2 border rounded-md outline-none focus:ring focus:ring-sky-700"
-            required={requiredFields.includes(name)}
-          />
-          {isError && <div className="text-red-500 text-sm mt-1">{error}</div>}
-        </>
-      ) : (
-        <span className="mt-1 text-gray-800">{value || "-"}</span>
-      )}
-    </div>
-  );
+  const inputData = [
+    {
+      title: "Name",
+      type: "text",
+      name: "name",
+      value: isEditing ? formData.name : currentUser.name,
+      isError: false,
+      isEditing,
+      handleChange,
+      requiredFields,
+      error,
+    },
+    {
+      title: "Username",
+      type: "text",
+      name: "username",
+      value: isEditing ? formData.username : currentUser.username,
+      isError: isError("username"),
+      isEditing,
+      handleChange,
+      requiredFields,
+      error,
+    },
+    {
+      title: "Email",
+      type: "email",
+      name: "email",
+      value: isEditing ? formData.email : currentUser.email,
+      isError: isError("email"),
+      isEditing,
+      handleChange,
+      requiredFields,
+      error,
+    },
+    {
+      title: "Phone",
+      type: "tel",
+      name: "phone",
+      value: isEditing ? formData.phone : currentUser.phone,
+      isError: isError("phone"),
+      isEditing,
+      handleChange,
+      requiredFields,
+      error,
+    },
+    {
+      title: "Address",
+      type: "text",
+      name: "address",
+      value: isEditing ? formData.address : currentUser.address,
+      isError: false,
+      isEditing,
+      handleChange,
+      requiredFields,
+      error,
+    },
+    {
+      title: "Preferences",
+      type: "text",
+      name: "preferences",
+      value: isEditing ? formData.preferences : currentUser.preferences,
+      isError: false,
+      isEditing,
+      handleChange,
+      requiredFields,
+      error,
+    },
+  ];
 
-  const buttonsAndLabel = (title, value, handleClick) => (
+  const buttonData = [
+    {
+      title: "Change Password",
+      value: "Change Password",
+      handleClick: handlePasswordModalOpen,
+    },
+    {
+      title: "Delete Account",
+      value: "Delete Account",
+      handleClick: handleDeleteAccount,
+    },
+    { title: "Log Out", value: "Log Out", handleClick: handleLogOut },
+  ];
+
+  const Buttons = ({ title, value, handleClick }) => (
     <div className="flex justify-between items-center mb-4">
       <div className="text-sm font-medium text-gray-600">{title}</div>
       <button
@@ -68,6 +175,12 @@ const Profile = () => {
       </button>
     </div>
   );
+
+  Buttons.propTypes = {
+    title: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    handleClick: PropTypes.func.isRequired,
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-8 bg-gray-100">
@@ -126,48 +239,9 @@ const Profile = () => {
         <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 mt-8">
           <h2 className="text-xl font-semibold mb-6">Personal Info</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {userInput(
-              "Name",
-              "text",
-              "name",
-              isEditing ? formData.name : currentUser.name,
-              false
-            )}
-            {userInput(
-              "Username",
-              "text",
-              "username",
-              isEditing ? formData.username : currentUser.username,
-              isError("username")
-            )}
-            {userInput(
-              "Email",
-              "email",
-              "email",
-              isEditing ? formData.email : currentUser.email,
-              isError("email")
-            )}
-            {userInput(
-              "Phone",
-              "tel",
-              "phone",
-              isEditing ? formData.phone : currentUser.phone,
-              isError("phone")
-            )}
-            {userInput(
-              "Address",
-              "text",
-              "address",
-              isEditing ? formData.address : currentUser.address,
-              false
-            )}
-            {userInput(
-              "Preferences",
-              "text",
-              "preferences",
-              isEditing ? formData.preferences : currentUser.preferences,
-              false
-            )}
+            {inputData.map((data) => (
+              <UserInput key={data.name} {...data} />
+            ))}
           </div>
 
           {/* Save and Cancel Buttons */}
@@ -220,17 +294,9 @@ const Profile = () => {
       <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 mt-8">
         <h2 className="text-xl font-semibold mb-6">Sign in & Security</h2>
 
-        {buttonsAndLabel(
-          "Password",
-          "Change password",
-          handlePasswordModalOpen
-        )}
-        {buttonsAndLabel(
-          "Delete My Accout",
-          "Delete Account",
-          handleDeleteAccount
-        )}
-        {buttonsAndLabel("Log Out", "Log Out", handleLogOut)}
+        {buttonData.map((data, index) => (
+          <Buttons key={index} {...data} />
+        ))}
       </div>
 
       {/* Render the Password Modal */}

@@ -1,8 +1,20 @@
+import About from "../components/About";
+import Features from "../components/Features";
+import Footer from "../components/Footer";
+import Hero from "../components/Hero";
+import Listings from "../components/Listings";
+
 const Home = () => {
   return (
-    <main className="bg-gray-100">
+    <>
       {/* Hero Section */}
-      <section className="relative h-96 flex items-center justify-center text-white">
+      <Hero />
+      <Features />
+      <Listings />
+      <About />
+      <Footer />
+
+      {/* <section className="relative h-96 flex items-center justify-center text-white">
         <video
           className="absolute inset-0 w-full h-full object-cover"
           autoPlay
@@ -14,7 +26,7 @@ const Home = () => {
         </video>
 
         {/* Overlay for better text visibility */}
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+      {/* <div className="absolute inset-0 bg-black opacity-50"></div>
 
         <div className="relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
@@ -32,17 +44,17 @@ const Home = () => {
             </button>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured Section */}
-      <section className="py-12">
+      {/* <section className="py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
             Featured Properties
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Sample Property Card */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"> */}
+      {/* Sample Property Card */}
+      {/* <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <img
                 src="https://via.placeholder.com/300"
                 alt="Property"
@@ -55,9 +67,9 @@ const Home = () => {
                 <p className="text-gray-600">3 beds • 2 baths • 1,500 sqft</p>
                 <span className="text-blue-600 font-bold">$450,000</span>
               </div>
-            </div>
-            {/* Repeat above div for more property cards */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            </div> */}
+      {/* Repeat above div for more property cards */}
+      {/* <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <img
                 src="https://via.placeholder.com/300"
                 alt="Property"
@@ -83,10 +95,10 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Call to Action Section */}
-      <section className="py-12 bg-blue-600 text-white text-center">
+      {/* <section className="py-12 bg-blue-600 text-white text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
             Ready to Find Your Dream Home?
@@ -95,8 +107,8 @@ const Home = () => {
             Browse Properties
           </button>
         </div>
-      </section>
-    </main>
+      </section> */}
+    </>
   );
 };
 
