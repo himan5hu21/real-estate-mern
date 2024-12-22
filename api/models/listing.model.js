@@ -2,6 +2,15 @@ import mongoose from "mongoose";
 
 const listingSchema = new mongoose.Schema(
   {
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -11,14 +20,10 @@ const listingSchema = new mongoose.Schema(
       required: true,
     },
     address: {
-      type: String,
+      type: Object,
       required: true,
     },
-    regularPrice: {
-      type: Number,
-      required: true,
-    },
-    discountPrice: {
+    price: {
       type: Number,
       required: true,
     },
@@ -30,12 +35,20 @@ const listingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    furnished: {
-      type: Boolean,
+    guestrooms: {
+      type: Number,
       required: true,
     },
-    parking: {
-      type: Boolean,
+    beds: {
+      type: Number,
+      required: true,
+    },
+    features: {
+      type: Array,
+      required: true,
+    },
+    area: {
+      type: String,
       required: true,
     },
     type: {
@@ -43,16 +56,8 @@ const listingSchema = new mongoose.Schema(
       required: true,
       enum: ["buy", "rent"],
     },
-    offer: {
-      type: Boolean,
-      required: true,
-    },
     imageUrls: {
       type: Array,
-      required: true,
-    },
-    userRef: {
-      type: String,
       required: true,
     },
   },

@@ -38,8 +38,14 @@ export const useProfileForm = (currentUser) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        // Limit file size to 2MB
+        setFileUploadError(true);
+        return;
+      }
       const imageUrl = URL.createObjectURL(file); // Temporary URL for image preview
       setNewImage(imageUrl); // Display preview of the new image
+      setFileUploadError(false);
     }
   };
 
@@ -47,7 +53,7 @@ export const useProfileForm = (currentUser) => {
     return new Promise((resolve, reject) => {
       const storage = getStorage(app);
       const timestamp = new Date().getTime();
-      const fileName = `${timestamp}_${file.name}`;
+      const fileName = `profileImages/${currentUser._id}/${timestamp}_${file.name}`;
       const storageRef = ref(storage, fileName);
 
       const uploadTask = uploadBytesResumable(storageRef, file);
@@ -91,9 +97,14 @@ export const useProfileForm = (currentUser) => {
       console.log(updatedFormData);
 
       if (newImage) {
-        const downloadURL = await handleFileUpload(updatedFormData.avatar);
-        updatedFormData = { ...updatedFormData, avatar: downloadURL };
+        const file = e.target["image-upload"].files[0];
+        if (file) {
+          const downloadURL = await handleFileUpload(file);
+          updatedFormData = { ...updatedFormData, avatar: downloadURL };
+        }
       }
+
+      console.log(updatedFormData);
 
       const res = await updateUser(currentUser._id, updatedFormData);
       const data = await res.data;

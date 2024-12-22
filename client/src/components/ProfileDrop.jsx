@@ -23,7 +23,7 @@ const ProfileDrop = React.memo(() => {
 
   const navigation = [
     { title: "My Profile", path: "/profile" },
-    { title: "Settings", path: "/properties" },
+    { title: "Add Properties", path: "/addProperty" },
     { title: "Log out", path: "#logout" },
   ];
 
